@@ -159,7 +159,15 @@
    GET http://localhost:3000/api/issues/{issueKey}
    ```
 
-5. **獲取 Sprint 統計資訊**：
+5. **獲取特定負責人的所有問題**：
+   ```
+   GET http://localhost:3000/api/issues/assignee/{assignee}
+   ```
+   - 回傳該負責人最近更新的 50 筆問題
+   - 問題按更新時間降序排序
+   - 回傳欄位包含：金鑰、摘要、狀態、負責人、建立時間、更新時間、優先級
+
+6. **獲取 Sprint 統計資訊**：
    ```
    GET http://localhost:3000/api/sprints/{sprintId}/statistics
    ```
