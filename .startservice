@@ -1,0 +1,96 @@
+
+## 2. 可用的查詢方式
+
+### 透過網頁界面查詢
+
+啟動服務後，您可以在瀏覽器中訪問 `http://localhost:3000` 使用網頁界面進行查詢。網頁界面提供以下功能：
+
+1. **查詢活躍的 Sprint**
+   - 點擊「獲取活躍的 Sprint」按鈕即可查看當前活躍的 Sprint 列表
+
+2. **查詢 Sprint 中的問題**
+   - 輸入 Sprint 名稱（例如：Sprint 10）
+   - 可選填專案金鑰（預設為 TWIT）
+   - 點擊「獲取問題」按鈕查看該 Sprint 中的所有問題
+
+3. **查詢問題詳細資訊**
+   - 輸入問題金鑰（例如：TWIT-123）
+   - 點擊「獲取詳細資訊」按鈕查看該問題的詳細資訊
+
+4. **查詢 Sprint 統計資訊**
+   - 輸入 Sprint ID（可從活躍 Sprint 列表中獲取）
+   - 點擊「獲取統計資訊」按鈕查看該 Sprint 的統計資訊，包括完成進度、已完成和未完成的問題
+
+### 透過 API 直接查詢
+
+如果您需要在其他應用程式中整合這些查詢功能，可以直接調用以下 API 端點：
+
+1. **獲取所有活躍的 Sprint**
+   ```
+   GET http://localhost:3000/api/sprints/active
+   ```
+
+2. **獲取所有 Sprint（包括已完成的）**
+   ```
+   GET http://localhost:3000/api/sprints
+   ```
+
+3. **獲取指定 Sprint 中的問題**
+   ```
+   GET http://localhost:3000/api/sprints/{sprintName}/issues?projectKey={projectKey}
+   ```
+   - `{sprintName}`: Sprint 名稱，例如 "Sprint 10"
+   - `{projectKey}`: 可選，專案金鑰，預設為 TWIT
+
+4. **獲取特定問題的詳細資訊**
+   ```
+   GET http://localhost:3000/api/issues/{issueKey}
+   ```
+   - `{issueKey}`: 問題金鑰，例如 "TWIT-123"
+
+5. **獲取 Sprint 統計資訊**
+   ```
+   GET http://localhost:3000/api/sprints/{sprintId}/statistics
+   ```
+   - `{sprintId}`: Sprint ID，可從活躍 Sprint 列表中獲取
+
+### 使用 curl 命令查詢
+
+您也可以使用 curl 命令在終端機中進行查詢：
+
+1. **獲取活躍的 Sprint**
+   ```bash
+   curl http://localhost:3000/api/sprints/active
+   ```
+
+2. **獲取指定 Sprint 中的問題**
+   ```bash
+   curl http://localhost:3000/api/sprints/Sprint%2010/issues?projectKey=TWIT
+   ```
+
+3. **獲取特定問題的詳細資訊**
+   ```bash
+   curl http://localhost:3000/api/issues/TWIT-123
+   ```
+
+4. **獲取 Sprint 統計資訊**
+   ```bash
+   curl http://localhost:3000/api/sprints/123/statistics
+   ```
+
+## 3. 查詢結果格式
+
+所有 API 查詢都會返回 JSON 格式的數據，您可以根據需要解析和處理這些數據。例如：
+
+1. **活躍 Sprint 列表**：包含 ID、名稱、狀態、開始日期和結束日期
+2. **Sprint 中的問題**：包含問題金鑰、摘要、狀態和負責人
+3. **問題詳細資訊**：包含問題金鑰、摘要、描述、狀態、負責人、報告者、優先級、創建時間、更新時間、組件和標籤
+4. **Sprint 統計資訊**：包含完成進度、已完成和未完成的問題列表
+
+## 4. 自定義查詢
+
+如果您需要添加新的查詢功能，可以在 `jiraApi.js` 中添加新的方法，然後在 `server.js` 中添加相應的路由。例如，如果您想添加一個查詢特定用戶負責的問題的功能，可以：
+
+1. 在 `jiraApi.js` 中添加新方法
+2. 在 `server.js` 中添加新路由
+3. 在前端 `public/app.js` 和 `public/index.html` 中添加相應的界面

@@ -1,0 +1,27 @@
+# 依賴
+node_modules/
+package-lock.json
+
+# 環境變數
+.env
+
+# 日誌
+logs
+*.log
+npm-debug.log*
+
+# 運行時資料
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# 編輯器設置
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 操作系統檔案
+.DS_Store
+Thumbs.db

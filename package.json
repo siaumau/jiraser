@@ -1,0 +1,30 @@
+{
+  "name": "jira-api-tool",
+  "version": "1.0.0",
+  "description": "一個與 Jira API 互動的工具，用於獲取 Sprint、問題和統計資訊",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "examples": "node examples.js",
+    "sprint-issues": "node -e \"const JiraApi = require('./jiraApi'); const jira = new JiraApi(); const sprintName = process.argv[1] || 'Sprint 10'; jira.getIssuesInSprint(sprintName).then(data => console.log(JSON.stringify(data, null, 2)));\"",
+    "active-sprints": "node -e \"const JiraApi = require('./jiraApi'); const jira = new JiraApi(); jira.getActiveSprints().then(data => console.log(JSON.stringify(data, null, 2)));\"",
+    "issue-details": "node -e \"const JiraApi = require('./jiraApi'); const jira = new JiraApi(); const issueKey = process.argv[1]; if (!issueKey) { console.error('請提供問題金鑰'); process.exit(1); } jira.getIssueDetails(issueKey).then(data => console.log(JSON.stringify(data, null, 2)));\"",
+    "server": "node server.js"
+  },
+  "keywords": [
+    "jira",
+    "api",
+    "sprint",
+    "issue",
+    "atlassian"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.21.2"
+  }
+}
