@@ -1,4 +1,26 @@
-document.addEventListener('DOMContentLoaded', () => {
+let jiraDomain = null;
+
+async function getJiraDomain() {
+  try {
+    const response = await fetch('/api/system/domain');
+    const data = await response.json();
+    if (response.ok && data.domain) {
+      jiraDomain = data.domain;
+      return data.domain;
+    } else {
+      console.error('無法獲取 JIRA 網域:', data.error);
+      return null;
+    }
+  } catch (error) {
+    console.error('獲取 JIRA 網域時出錯:', error);
+    return null;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // 首先獲取 JIRA 網域
+  await getJiraDomain();
+
   // 統計資訊切換功能
   const toggleStatsBtn = document.getElementById('toggleStats');
   const statsContainer = document.getElementById('statsContainer');
@@ -422,7 +444,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             pageIssues.forEach(issue => {
               issuesHtml += `<tr>
-                <td><a href="#" class="issue-key" data-key="${issue.key}">${issue.key}</a></td>
+                <td>
+                  <a href="#" class="issue-key" data-key="${issue.key}">${issue.key}</a>
+                  ${jiraDomain ? `
+                    <a href="https://${jiraDomain}/browse/${issue.key}" target="_blank" class="external-link" title="在 JIRA 中開啟">
+                      <svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align: middle; margin-left: 4px;">
+                        <path fill="currentColor" d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
+                      </svg>
+                    </a>
+                  ` : ''}
+                </td>
                 <td>${issue.summary}</td>
                 <td><span class="status-badge" style="background-color: ${getStatusColor(issue.status)}">${issue.status}</span></td>
                 <td>${issue.assignee}</td>

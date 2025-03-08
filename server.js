@@ -19,6 +19,19 @@ const jira = new JiraApi();
 // API 路由
 const apiRouter = express.Router();
 
+// 系統資訊路由
+apiRouter.get('/system/domain', (req, res) => {
+  const domain = jira.getDomain();
+  if (!domain) {
+    res.status(500).json({
+      error: '未設定 JIRA_DOMAIN 環境變數',
+      domain: null
+    });
+    return;
+  }
+  res.json({ domain });
+});
+
 // Sprint 相關路由
 apiRouter.get('/sprints/active', async (req, res) => {
   try {
