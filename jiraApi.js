@@ -143,6 +143,29 @@ class JiraApi {
       throw error;
     }
   }
+
+  async getIssuesByAssignee(assignee) {
+    const jql = `assignee = "${assignee}" ORDER BY updated DESC`;
+    const fields = ['key', 'summary', 'status', 'assignee', 'created', 'updated', 'priority'];
+    const response = await this.axiosInstance.post(`https://${this.domain}/rest/api/3/search`, {
+      jql,
+      fields,
+      maxResults: 50
+    });
+
+    return {
+      total: response.data.total,
+      issues: response.data.issues.map(issue => ({
+        key: issue.key,
+        summary: issue.fields.summary,
+        status: issue.fields.status.name,
+        assignee: issue.fields.assignee?.displayName || '未分配',
+        created: issue.fields.created,
+        updated: issue.fields.updated,
+        priority: issue.fields.priority?.name || '未設定'
+      }))
+    };
+  }
 }
 
 module.exports = JiraApi;

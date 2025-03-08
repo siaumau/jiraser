@@ -16,8 +16,11 @@ app.use(express.static('public'));
 // 創建 Jira API 實例
 const jira = new JiraApi();
 
-// 路由：獲取所有活躍的 Sprint
-app.get('/api/sprints/active', async (req, res) => {
+// API 路由
+const apiRouter = express.Router();
+
+// Sprint 相關路由
+apiRouter.get('/sprints/active', async (req, res) => {
   try {
     const activeSprints = await jira.getActiveSprints();
     res.json(activeSprints);
@@ -26,8 +29,7 @@ app.get('/api/sprints/active', async (req, res) => {
   }
 });
 
-// 路由：獲取所有 Sprint
-app.get('/api/sprints', async (req, res) => {
+apiRouter.get('/sprints', async (req, res) => {
   try {
     const allSprints = await jira.getAllSprints();
     res.json(allSprints);
@@ -36,8 +38,7 @@ app.get('/api/sprints', async (req, res) => {
   }
 });
 
-// 路由：獲取指定 Sprint 中的問題
-app.get('/api/sprints/:sprintName/issues', async (req, res) => {
+apiRouter.get('/sprints/:sprintName/issues', async (req, res) => {
   try {
     const { sprintName } = req.params;
     const { projectKey } = req.query;
@@ -48,19 +49,7 @@ app.get('/api/sprints/:sprintName/issues', async (req, res) => {
   }
 });
 
-// 路由：獲取特定問題的詳細資訊
-app.get('/api/issues/:issueKey', async (req, res) => {
-  try {
-    const { issueKey } = req.params;
-    const issue = await jira.getIssueDetails(issueKey);
-    res.json(issue);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// 路由：獲取 Sprint 統計資訊
-app.get('/api/sprints/:sprintId/statistics', async (req, res) => {
+apiRouter.get('/sprints/:sprintId/statistics', async (req, res) => {
   try {
     const { sprintId } = req.params;
     const statistics = await jira.getSprintStatistics(sprintId);
@@ -69,6 +58,29 @@ app.get('/api/sprints/:sprintId/statistics', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// Issue 相關路由
+apiRouter.get('/issues/assignee/:assignee', async (req, res) => {
+  try {
+    const assignee = decodeURIComponent(req.params.assignee);
+    const data = await jira.getIssuesByAssignee(assignee);
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+apiRouter.get('/issues/:issueKey', async (req, res) => {
+  try {
+    const data = await jira.getIssueDetails(req.params.issueKey);
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 註冊 API 路由
+app.use('/api', apiRouter);
 
 // 啟動服務器
 app.listen(port, () => {
