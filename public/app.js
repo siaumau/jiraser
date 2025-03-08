@@ -422,7 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             pageIssues.forEach(issue => {
               issuesHtml += `<tr>
-                <td>${issue.key}</td>
+                <td><a href="#" class="issue-key" data-key="${issue.key}">${issue.key}</a></td>
                 <td>${issue.summary}</td>
                 <td><span class="status-badge" style="background-color: ${getStatusColor(issue.status)}">${issue.status}</span></td>
                 <td>${issue.assignee}</td>
@@ -453,6 +453,19 @@ document.addEventListener('DOMContentLoaded', () => {
                   const column = th.dataset.column;
                   const newDirection = currentSort.column === column && currentSort.direction === 'asc' ? 'desc' : 'asc';
                   renderIssuesPage(currentPage, column, newDirection);
+                });
+              });
+
+              // 添加金鑰點擊事件監聽器
+              document.querySelectorAll('.issue-key').forEach(link => {
+                link.addEventListener('click', (e) => {
+                  e.preventDefault();
+                  const issueKey = link.dataset.key;
+                  const issueKeyInput = document.getElementById('issueKey');
+                  if (issueKeyInput) {
+                    issueKeyInput.value = issueKey;
+                    document.getElementById('getIssueDetails')?.click();
+                  }
                 });
               });
             }
