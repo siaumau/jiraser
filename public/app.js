@@ -465,6 +465,8 @@ document.addEventListener('DOMContentLoaded', () => {
                   if (issueKeyInput) {
                     issueKeyInput.value = issueKey;
                     document.getElementById('getIssueDetails')?.click();
+                    // 滾動到問題詳細資訊區塊
+                    document.getElementById('issueDetailsResult')?.scrollIntoView({ behavior: 'smooth' });
                   }
                 });
               });
@@ -536,7 +538,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json();
 
         if (response.ok) {
-          let html = `<h3>${data.key}: ${data.summary}</h3>`;
+          let html = '<div class="issue-details-header">';
+          html += `<h3>${data.key}: ${data.summary}</h3>`;
+          html += '<button class="back-to-sprint" onclick="document.getElementById(\'sprintIssuesResult\').scrollIntoView({ behavior: \'smooth\' })">回到 Sprint 中的問題 ↑</button>';
+          html += '</div>';
           html += `<p><strong>狀態：</strong> ${data.status}</p>`;
           html += `<p><strong>負責人：</strong> ${data.assignee}</p>`;
           html += `<p><strong>報告者：</strong> ${data.reporter}</p>`;
