@@ -17,6 +17,11 @@ class JiraApi {
     });
   }
 
+  // 獲取 JIRA 網域
+  getDomain() {
+    return this.domain;
+  }
+
   /**
    * 獲取指定 Sprint 中的問題
    * @param {string} sprintName - Sprint 名稱
