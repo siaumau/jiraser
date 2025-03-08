@@ -36,16 +36,6 @@
    JIRA_BOARD_ID=your-board-id
    ```
 
-## 使用方式
-
-### 1. Windows 批次檔操作（推薦）
-
-本專案提供了兩個 Windows 批次檔，方便使用者快速操作：
-
-#### start-jira-service.bat
-
-這是一個簡單的批次檔，一鍵完成安裝套件並啟動 Web 服務。
-
 **使用方法**：
 1. 雙擊 `start-jira-service.bat` 檔案
 2. 批次檔會自動檢查 Node.js 環境、安裝必要套件，然後啟動 Web 服務
