@@ -107,8 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const sprintName = document.getElementById('sprintName')?.value.trim() || '';
       const projectKey = document.getElementById('projectKey')?.value.trim() || '';
       const assigneeFilter = document.getElementById('assigneeFilter')?.value || '';
-      const summaryFilter = document.getElementById('summaryFilter')?.value.trim().toLowerCase() || '';
-      const keyFilter = document.getElementById('keyFilter')?.value.trim().toLowerCase() || '';
+      const searchFilter = document.getElementById('searchFilter')?.value.trim().toLowerCase() || '';
       const resultElement = document.getElementById('sprintIssuesResult');
       const analysisElement = document.getElementById('analysisResult');
 
@@ -330,14 +329,65 @@ document.addEventListener('DOMContentLoaded', () => {
           const itemsPerPage = 10;
           const filteredIssues = data.issues.filter(issue => {
             const matchesAssignee = !assigneeFilter || issue.assignee.toLowerCase().includes(assigneeFilter.toLowerCase());
-            const matchesSummary = !summaryFilter || issue.summary.toLowerCase().includes(summaryFilter);
-            const matchesKey = !keyFilter || issue.key.toLowerCase().includes(keyFilter);
-            return matchesAssignee && matchesSummary && matchesKey;
+            const matchesSearch = !searchFilter ||
+              issue.summary.toLowerCase().includes(searchFilter) ||
+              issue.key.toLowerCase().includes(searchFilter);
+            return matchesAssignee && matchesSearch;
           });
           const totalPages = Math.ceil(filteredIssues.length / itemsPerPage);
           let currentPage = 1;
+          let currentSort = { column: '', direction: 'asc' };
 
-          function renderIssuesPage(page) {
+          function sortIssues(issues, column, direction) {
+            return [...issues].sort((a, b) => {
+              let valueA = a[column];
+              let valueB = b[column];
+
+              // 特殊處理時間欄位
+              if (['timeEstimate', 'timeSpent', 'timeRemaining'].includes(column)) {
+                valueA = valueA || 0;
+                valueB = valueB || 0;
+              }
+
+              if (direction === 'asc') {
+                return valueA > valueB ? 1 : -1;
+              } else {
+                return valueA < valueB ? 1 : -1;
+              }
+            });
+          }
+
+          function getStatusColor(status) {
+            const statusColors = {
+              '待辦': '#6B778C',      // 淺灰色
+              'To Do': '#6B778C',
+              '進行中': '#0097A9',    // 藍色
+              'In Progress': '#0097A9',
+              '待審核': '#6554C0',    // 紫色
+              'In Review': '#6554C0',
+              '完成': '#36B37E',      // 綠色
+              'Done': '#36B37E',
+              '阻擋': '#FF5630',      // 紅色
+              'Blocked': '#FF5630',
+              '已關閉': '#36B37E',    // 綠色
+              'Closed': '#36B37E',
+              '工作暫停': '#FF991F'   // 橙色
+            };
+            return statusColors[status] || '#6B778C';  // 默認使用淺灰色
+          }
+
+          function renderIssuesPage(page, sortColumn = '', sortDirection = 'asc') {
+            if (sortColumn) {
+              currentSort = { column: sortColumn, direction: sortDirection };
+              filteredIssues.sort((a, b) => {
+                const valueA = a[sortColumn];
+                const valueB = b[sortColumn];
+                return sortDirection === 'asc' ?
+                  (valueA > valueB ? 1 : -1) :
+                  (valueA < valueB ? 1 : -1);
+              });
+            }
+
             const start = (page - 1) * itemsPerPage;
             const end = start + itemsPerPage;
             const pageIssues = filteredIssues.slice(start, end);
@@ -348,17 +398,34 @@ document.addEventListener('DOMContentLoaded', () => {
               issuesHtml += ` (已篩選：${filteredIssues.length}/${data.issues.length})`;
             }
             issuesHtml += '</h4>';
-            issuesHtml += '<table><tr><th>金鑰</th><th>摘要</th><th>狀態</th><th>負責人</th><th>預估時間</th><th>已花費</th><th>剩餘</th></tr>';
+
+            // 添加表格標題排序功能
+            const getSortIcon = (column) => {
+              if (currentSort.column !== column) return '↕️';
+              return currentSort.direction === 'asc' ? '↑' : '↓';
+            };
+
+            const columns = [
+              { id: 'key', name: '金鑰' },
+              { id: 'summary', name: '摘要' },
+              { id: 'status', name: '狀態' },
+              { id: 'assignee', name: '負責人' }
+            ];
+
+            issuesHtml += '<table><tr>';
+            columns.forEach(column => {
+              issuesHtml += `<th class="sortable" data-column="${column.id}">
+                ${column.name} <span class="sort-icon">${getSortIcon(column.id)}</span>
+              </th>`;
+            });
+            issuesHtml += '</tr>';
 
             pageIssues.forEach(issue => {
               issuesHtml += `<tr>
                 <td>${issue.key}</td>
                 <td>${issue.summary}</td>
-                <td>${issue.status}</td>
+                <td><span class="status-badge" style="background-color: ${getStatusColor(issue.status)}">${issue.status}</span></td>
                 <td>${issue.assignee}</td>
-                <td>${formatTime(issue.timeEstimate)}</td>
-                <td>${formatTime(issue.timeSpent)}</td>
-                <td>${formatTime(issue.timeRemaining)}</td>
               </tr>`;
             });
 
@@ -367,15 +434,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // 分頁控制
             if (totalPages > 1) {
               issuesHtml += '<div class="pagination">';
-              // 上一頁按鈕
               issuesHtml += `<button class="page-btn" ${page === 1 ? 'disabled' : ''} onclick="changePage(${page - 1})">上一頁</button>`;
-
-              // 頁碼按鈕
               for (let i = 1; i <= totalPages; i++) {
                 issuesHtml += `<button class="page-btn ${i === page ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
               }
-
-              // 下一頁按鈕
               issuesHtml += `<button class="page-btn" ${page === totalPages ? 'disabled' : ''} onclick="changePage(${page + 1})">下一頁</button>`;
               issuesHtml += '</div>';
             }
@@ -384,6 +446,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (resultElement) {
               resultElement.innerHTML = issuesHtml;
+
+              // 添加排序事件監聽器
+              document.querySelectorAll('.sortable').forEach(th => {
+                th.addEventListener('click', () => {
+                  const column = th.dataset.column;
+                  const newDirection = currentSort.column === column && currentSort.direction === 'asc' ? 'desc' : 'asc';
+                  renderIssuesPage(currentPage, column, newDirection);
+                });
+              });
             }
           }
 

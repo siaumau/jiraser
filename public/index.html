@@ -36,7 +36,7 @@
     }
 
     button {
-      background: #0052cc;
+      background: #0097A9;
       color: white;
       border: none;
       padding: 8px 16px;
@@ -46,7 +46,7 @@
     }
 
     button:hover {
-      background: #0043a6;
+      background: #005A65;
     }
 
     .loading {
@@ -142,7 +142,7 @@
 
     .progress {
       height: 100%;
-      background: #0052cc;
+      background: #0097A9;
       border-radius: 3px;
       transition: width 0.3s ease;
     }
@@ -168,7 +168,7 @@
     }
 
     .completion-rate {
-      background: #0052cc;
+      background: #0097A9;
       color: white;
       padding: 4px 8px;
       border-radius: 4px;
@@ -284,7 +284,7 @@
     }
 
     select:hover {
-      border-color: #0052cc;
+      border-color: #0097A9;
     }
 
     @media (max-width: 768px) {
@@ -372,14 +372,14 @@
 
     .page-btn:hover:not([disabled]) {
       background: #f8f9fa;
-      border-color: #0052cc;
-      color: #0052cc;
+      border-color: #0097A9;
+      color: #0097A9;
     }
 
     .page-btn.active {
-      background: #0052cc;
+      background: #0097A9;
       color: white;
-      border-color: #0052cc;
+      border-color: #0097A9;
     }
 
     .page-btn[disabled] {
@@ -394,6 +394,18 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 0;
+    }
+
+    /* 狀態標籤樣式 */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 3px;
+      color: white;
+      font-size: 12px;
+      font-weight: 500;
+      text-align: center;
+      min-width: 80px;
     }
 
     th {
@@ -412,6 +424,30 @@
 
     tr:hover {
       background: #f8f9fa;
+    }
+
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      padding-right: 25px;
+    }
+
+    th.sortable:hover {
+      background: #e9ecef;
+    }
+
+    .sort-icon {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.8em;
+      opacity: 0.6;
+    }
+
+    th.sortable:hover .sort-icon {
+      opacity: 1;
     }
 
     /* 響應式調整 */
@@ -448,8 +484,8 @@
 
     .toggle-stats-btn:hover {
       background: #e9ecef;
-      border-color: #0052cc;
-      color: #0052cc;
+      border-color: #0097A9;
+      color: #0097A9;
     }
 
     .toggle-stats-btn i {
@@ -491,12 +527,11 @@
         <select id="sprintName" class="sprint-select">
           <option value="">選擇 Sprint</option>
         </select>
-        <input type="text" id="projectKey" placeholder="輸入專案金鑰（選填）">
         <select id="assigneeFilter">
           <option value="">所有負責人</option>
         </select>
-        <input type="text" id="summaryFilter" placeholder="輸入摘要關鍵字">
-        <input type="text" id="keyFilter" placeholder="輸入問題金鑰關鍵字">
+        <input type="text" id="projectKey" placeholder="輸入專案金鑰（選填）">
+        <input type="text" id="searchFilter" placeholder="輸入摘要或問題金鑰關鍵字">
         <button id="getSprintIssues">獲取 Sprint 問題</button>
       </div>
       <div class="result-container">
