@@ -36,13 +36,6 @@
    JIRA_BOARD_ID=your-board-id
    ```
 
-**使用方法**：
-1. 雙擊 `start-jira-service.bat` 檔案
-2. 批次檔會自動檢查 Node.js 環境、安裝必要套件，然後啟動 Web 服務
-3. 服務啟動後，您可以在瀏覽器中訪問 `http://localhost:3000` 使用網頁界面
-4. 按 `Ctrl+C` 可以停止服務
-5. 所有操作日誌會自動保存在 `logs` 目錄中
-
 #### jira-tool.bat
 
 這是一個功能更完整的批次檔，提供選單界面讓您選擇不同的操作。
