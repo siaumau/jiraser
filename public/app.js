@@ -184,22 +184,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           // 計算統計資料
           const stats = {
-            totalEstimate: 0,
-            totalRemaining: 0,
-            totalSpent: 0,
+            totalEstimateTime: 0,    // 總預估工時
+            completedTime: 0,        // 已完成工時
+            remainingTime: 0,        // 剩餘工時
             assignees: new Map(),
             statusCounts: new Map()
           };
 
-          data.issues.forEach(issue => {
-            // 計算時間
-            const estimate = issue.timeEstimate || 0;
-            const remaining = issue.timeRemaining || 0;
-            const spent = issue.timeSpent || 0;
+          // 先根據篩選條件過濾問題
+          const filteredIssues = data.issues.filter(issue => {
+            const matchesAssignee = !assigneeFilter || issue.assignee.toLowerCase().includes(assigneeFilter.toLowerCase());
+            const matchesSearch = !searchFilter ||
+              issue.summary.toLowerCase().includes(searchFilter) ||
+              issue.key.toLowerCase().includes(searchFilter);
+            return matchesAssignee && matchesSearch;
+          });
 
-            stats.totalEstimate += estimate;
-            stats.totalRemaining += remaining;
-            stats.totalSpent += spent;
+          // 使用過濾後的問題進行統計
+          filteredIssues.forEach(issue => {
+            // 計算時間
+            const estimateTime = issue.aggregatetimeoriginalestimate || 0;
+            stats.totalEstimateTime += estimateTime;
+
+            // 如果任務完成，將其預估時間計入已完成時間
+            if (issue.status === '完成' || issue.status === 'Done') {
+              stats.completedTime += estimateTime;
+            }
 
             // 統計負責人資料
             if (!stats.assignees.has(issue.assignee)) {
@@ -207,12 +217,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 total: 0,
                 completed: 0,
                 remaining: 0,
-                issues: []
+                issues: [],
+                totalEstimateTime: 0
               });
             }
             const assigneeStats = stats.assignees.get(issue.assignee);
             assigneeStats.total++;
             assigneeStats.issues.push(issue);
+            assigneeStats.totalEstimateTime += issue.aggregatetimeoriginalestimate || 0;
             if (issue.status === '完成' || issue.status === 'Done') {
               assigneeStats.completed++;
             } else {
@@ -241,23 +253,23 @@ document.addEventListener('DOMContentLoaded', async () => {
               <div class="card-body">
                 <div class="summary-item">
                   <span class="label">總計</span>
-                  <span class="value">${data.total} 個問題</span>
+                  <span class="value">${filteredIssues.length} 個問題</span>
                 </div>
                 <div class="summary-item">
                   <span class="label">總預估時間</span>
-                  <span class="value">${formatTime(stats.totalEstimate)}</span>
+                  <span class="value">${(stats.totalEstimateTime / 3600).toFixed(1)}小時</span>
                 </div>
                 <div class="summary-item">
-                  <span class="label">已花費時間</span>
-                  <span class="value">${formatTime(stats.totalSpent)}</span>
+                  <span class="label">已完成時間</span>
+                  <span class="value">${(stats.completedTime / 3600).toFixed(1)}小時</span>
                 </div>
                 <div class="summary-item">
                   <span class="label">剩餘時間</span>
-                  <span class="value">${formatTime(stats.totalRemaining)}</span>
+                  <span class="value">${((stats.totalEstimateTime - stats.completedTime) / 3600).toFixed(1)}小時</span>
                 </div>
                 <div class="summary-item">
                   <span class="label">完成率</span>
-                  <span class="value">${calculateCompletionRate(stats.totalSpent, stats.totalEstimate)}%</span>
+                  <span class="value">${stats.totalEstimateTime > 0 ? ((stats.completedTime / stats.totalEstimateTime) * 100).toFixed(1) : 0}%</span>
                 </div>
               </div>
             </div>`;
@@ -272,7 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="status-grid">`;
 
           stats.statusCounts.forEach((count, status) => {
-            const percentage = ((count / data.total) * 100).toFixed(1);
+            const percentage = ((count / filteredIssues.length) * 100).toFixed(1);
             statsHtml += `
               <div class="status-item">
                 <div class="status-header">
@@ -302,6 +314,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           stats.assignees.forEach((memberStats, assignee) => {
             const completionRate = ((memberStats.completed / memberStats.total) * 100).toFixed(1);
+            const estimateHours = (memberStats.totalEstimateTime / 3600).toFixed(1);
             statsHtml += `
               <div class="member-card">
                 <div class="member-header">
@@ -320,6 +333,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                   <div class="stat-row">
                     <span class="stat-label">進行中</span>
                     <span class="stat-value ongoing">${memberStats.remaining}</span>
+                  </div>
+                  <div class="stat-row">
+                    <span class="stat-label">預估工時</span>
+                    <span class="stat-value">${estimateHours}小時</span>
                   </div>
                 </div>
                 <div class="progress-bar">
@@ -349,13 +366,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           // 生成問題列表 HTML
           const itemsPerPage = 10;
-          const filteredIssues = data.issues.filter(issue => {
-            const matchesAssignee = !assigneeFilter || issue.assignee.toLowerCase().includes(assigneeFilter.toLowerCase());
-            const matchesSearch = !searchFilter ||
-              issue.summary.toLowerCase().includes(searchFilter) ||
-              issue.key.toLowerCase().includes(searchFilter);
-            return matchesAssignee && matchesSearch;
-          });
           const totalPages = Math.ceil(filteredIssues.length / itemsPerPage);
           let currentPage = 1;
           let currentSort = { column: '', direction: 'asc' };
@@ -431,7 +441,8 @@ document.addEventListener('DOMContentLoaded', async () => {
               { id: 'key', name: '金鑰' },
               { id: 'summary', name: '摘要' },
               { id: 'status', name: '狀態' },
-              { id: 'assignee', name: '負責人' }
+              { id: 'assignee', name: '負責人' },
+              { id: 'aggregatetimeoriginalestimate', name: '預估工時' }
             ];
 
             issuesHtml += '<table><tr>';
@@ -454,9 +465,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </a>
                   ` : ''}
                 </td>
-                <td>${issue.summary}</td>
-                <td><span class="status-badge" style="background-color: ${getStatusColor(issue.status)}">${issue.status}</span></td>
-                <td>${issue.assignee}</td>
+                <td>${issue.summary || ''}</td>
+                <td style="color: ${getStatusColor(issue.status)}">${issue.status || ''}</td>
+                <td>${issue.assignee || '未分配'}</td>
+                <td>${issue.aggregatetimeoriginalestimate ? (issue.aggregatetimeoriginalestimate / 3600).toFixed(1) + '小時' : '未設定'}</td>
               </tr>`;
             });
 
