@@ -115,3 +115,37 @@ th {
 tr:nth-child(even) {
   background-color: #f9f9f9;
 }
+
+/* 任務列表樣式 */
+.task-list {
+  margin: 10px 0;
+  padding: 0;
+}
+
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  margin: 5px 0;
+  padding: 8px;
+  background-color: #f4f5f7;
+  border-radius: 3px;
+}
+
+.task-item input[type="checkbox"] {
+  margin: 3px 8px 0 0;
+  cursor: not-allowed;
+  flex-shrink: 0;
+}
+
+.task-text {
+  flex: 1;
+  line-height: 1.4;
+  color: #172b4d;
+  word-break: break-word;
+  display: block;
+}
+
+.task-item input[type="checkbox"]:checked + .task-text {
+  text-decoration: line-through;
+  color: #5e6c84;
+}
