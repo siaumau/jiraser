@@ -8,13 +8,50 @@ class JiraApi {
     this.apiToken = process.env.JIRA_API_TOKEN;
     this.boardId = process.env.JIRA_BOARD_ID;
 
+    console.log('Jira API 配置信息：');
+    console.log('Domain:', this.domain);
+    console.log('Email:', this.email);
+    console.log('Board ID:', this.boardId);
+    console.log('API Token 長度:', this.apiToken ? this.apiToken.length : 0);
+
+    if (!this.domain || !this.email || !this.apiToken || !this.boardId) {
+      console.error('缺少必要的環境變數配置');
+      throw new Error('環境變數配置不完整');
+    }
+
     // 設置 axios 基本配置
     this.axiosInstance = axios.create({
+      baseURL: `https://${this.domain}`,
       auth: {
         username: this.email,
         password: this.apiToken
+      },
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       }
     });
+
+    // 添加請求攔截器用於調試
+    this.axiosInstance.interceptors.request.use(config => {
+      console.log(`發送請求到: ${config.baseURL}${config.url}`);
+      return config;
+    });
+
+    // 添加響應攔截器用於調試
+    this.axiosInstance.interceptors.response.use(
+      response => response,
+      error => {
+        console.error('API 請求失敗:', {
+          url: error.config.url,
+          method: error.config.method,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          message: error.message
+        });
+        throw error;
+      }
+    );
   }
 
   // 獲取 JIRA 網域
@@ -31,7 +68,7 @@ class JiraApi {
   async getIssuesInSprint(sprintName, projectKey = 'TWIT') {
     try {
       const jql = `sprint = "${sprintName}" AND project = ${projectKey}`;
-      const response = await this.axiosInstance.get(`https://${this.domain}/rest/api/3/search`, {
+      const response = await this.axiosInstance.get('/rest/api/3/search', {
         params: {
           jql: jql,
           maxResults: 100
@@ -63,7 +100,7 @@ class JiraApi {
    */
   async getIssueDetails(issueKey) {
     try {
-      const response = await this.axiosInstance.get(`https://${this.domain}/rest/api/3/issue/${issueKey}`);
+      const response = await this.axiosInstance.get('/rest/api/3/issue/' + issueKey);
 
       const issue = response.data;
       return {
@@ -92,7 +129,7 @@ class JiraApi {
   async getActiveSprints() {
     try {
       const response = await this.axiosInstance.get(
-        `https://${this.domain}/rest/agile/1.0/board/${this.boardId}/sprint?state=active`
+        '/rest/agile/1.0/board/' + this.boardId + '/sprint?state=active'
       );
 
       return response.data.values.map(sprint => ({
@@ -115,7 +152,7 @@ class JiraApi {
   async getAllSprints() {
     try {
       const response = await this.axiosInstance.get(
-        `https://${this.domain}/rest/agile/1.0/board/${this.boardId}/sprint`
+        '/rest/agile/1.0/board/' + this.boardId + '/sprint'
       );
 
       return response.data.values.map(sprint => ({
@@ -139,7 +176,7 @@ class JiraApi {
   async getSprintStatistics(sprintId) {
     try {
       const response = await this.axiosInstance.get(
-        `https://${this.domain}/rest/greenhopper/1.0/rapid/charts/sprintreport?rapidViewId=${this.boardId}&sprintId=${sprintId}`
+        '/rest/greenhopper/1.0/rapid/charts/sprintreport?rapidViewId=' + this.boardId + '&sprintId=' + sprintId
       );
 
       return response.data;
@@ -152,7 +189,7 @@ class JiraApi {
   async getIssuesByAssignee(assignee) {
     const jql = `assignee = "${assignee}" ORDER BY updated DESC`;
     const fields = ['key', 'summary', 'status', 'assignee', 'created', 'updated', 'priority'];
-    const response = await this.axiosInstance.post(`https://${this.domain}/rest/api/3/search`, {
+    const response = await this.axiosInstance.post('/rest/api/3/search', {
       jql,
       fields,
       maxResults: 50

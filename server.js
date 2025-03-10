@@ -5,7 +5,7 @@ const JiraApi = require('./jiraApi');
 
 // 創建 Express 應用
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5001;
 
 // 中間件
 app.use(cors());
