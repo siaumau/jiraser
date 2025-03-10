@@ -631,6 +631,36 @@ document.addEventListener('DOMContentLoaded', async () => {
                       contentHtml += '</li>';
                     });
                     contentHtml += '</ol>';
+                  } else if (block.type === 'taskList') {
+                    contentHtml += '<div class="task-list">';
+                    if (block.content) {
+                      block.content.forEach(taskItem => {
+                        if (taskItem.type === 'taskItem') {
+                          const checked = taskItem.attrs?.state === 'DONE';
+                          let taskContent = '(空白任務)';
+                          
+                          if (taskItem.content && taskItem.content.length > 0) {
+                            console.log('Task content:', taskItem.content); // 除錯用
+                            taskContent = taskItem.content.map(item => {
+                              if (item.type === 'text') {
+                                console.log('Text content:', item.text); // 除錯用
+                                return item.text;
+                              } else {
+                                return renderContent([item]);
+                              }
+                            }).join('');
+                          }
+
+                          console.log('Final task content:', taskContent); // 除錯用
+
+                          contentHtml += `<div class="task-item">
+                            <input type="checkbox" ${checked ? 'checked' : ''} disabled>
+                            <span class="task-text">${taskContent}</span>
+                          </div>`;
+                        }
+                      });
+                    }
+                    contentHtml += '</div>';
                   }
                 });
                 return contentHtml;
