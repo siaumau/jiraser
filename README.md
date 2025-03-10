@@ -131,7 +131,7 @@
    ```
 
 2. **使用網頁界面**：
-   訪問 `http://localhost:3000`，您可以：
+   訪問 `http://localhost:5001`，您可以：
    - 獲取所有活躍的 Sprint
    - 獲取指定 Sprint 中的問題
    - 獲取特定問題的詳細資訊
@@ -141,27 +141,27 @@
 
 1. **獲取所有活躍的 Sprint**：
    ```
-   GET http://localhost:3000/api/sprints/active
+   GET http://localhost:5001/api/sprints/active
    ```
 
 2. **獲取所有 Sprint**：
    ```
-   GET http://localhost:3000/api/sprints
+   GET http://localhost:5001/api/sprints
    ```
 
 3. **獲取指定 Sprint 中的問題**：
    ```
-   GET http://localhost:3000/api/sprints/{sprintName}/issues?projectKey={projectKey}
+   GET http://localhost:5001/api/sprints/{sprintName}/issues?projectKey={projectKey}
    ```
 
 4. **獲取特定問題的詳細資訊**：
    ```
-   GET http://localhost:3000/api/issues/{issueKey}
+   GET http://localhost:5001/api/issues/{issueKey}
    ```
 
 5. **獲取特定負責人的所有問題**：
    ```
-   GET http://localhost:3000/api/issues/assignee/{assignee}
+   GET http://localhost:5001/api/issues/assignee/{assignee}
    ```
    - 回傳該負責人最近更新的 50 筆問題
    - 問題按更新時間降序排序
@@ -169,7 +169,7 @@
 
 6. **獲取 Sprint 統計資訊**：
    ```
-   GET http://localhost:3000/api/sprints/{sprintId}/statistics
+   GET http://localhost:5001/api/sprints/{sprintId}/statistics
    ```
 
 ## 日誌功能
@@ -216,7 +216,7 @@ jira-api-tool/
    - 查看日誌檔案以獲取詳細錯誤信息
 
 3. **服務啟動後無法訪問**
-   - 確保端口 3000 未被佔用
+   - 確保端口 5001 未被佔用
    - 檢查防火牆設定
    - 查看日誌檔案中的錯誤信息
 

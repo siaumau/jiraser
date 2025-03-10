@@ -3,7 +3,7 @@
 
 ### 透過網頁界面查詢
 
-啟動服務後，您可以在瀏覽器中訪問 `http://localhost:3000` 使用網頁界面進行查詢。網頁界面提供以下功能：
+啟動服務後，您可以在瀏覽器中訪問 `http://localhost:5001` 使用網頁界面進行查詢。網頁界面提供以下功能：
 
 1. **查詢活躍的 Sprint**
    - 點擊「獲取活躍的 Sprint」按鈕即可查看當前活躍的 Sprint 列表
@@ -27,30 +27,30 @@
 
 1. **獲取所有活躍的 Sprint**
    ```
-   GET http://localhost:3000/api/sprints/active
+   GET http://localhost:5001/api/sprints/active
    ```
 
 2. **獲取所有 Sprint（包括已完成的）**
    ```
-   GET http://localhost:3000/api/sprints
+   GET http://localhost:5001/api/sprints
    ```
 
 3. **獲取指定 Sprint 中的問題**
    ```
-   GET http://localhost:3000/api/sprints/{sprintName}/issues?projectKey={projectKey}
+   GET http://localhost:5001/api/sprints/{sprintName}/issues?projectKey={projectKey}
    ```
    - `{sprintName}`: Sprint 名稱，例如 "Sprint 10"
    - `{projectKey}`: 可選，專案金鑰，預設為 TWIT
 
 4. **獲取特定問題的詳細資訊**
    ```
-   GET http://localhost:3000/api/issues/{issueKey}
+   GET http://localhost:5001/api/issues/{issueKey}
    ```
    - `{issueKey}`: 問題金鑰，例如 "TWIT-123"
 
 5. **獲取 Sprint 統計資訊**
    ```
-   GET http://localhost:3000/api/sprints/{sprintId}/statistics
+   GET http://localhost:5001/api/sprints/{sprintId}/statistics
    ```
    - `{sprintId}`: Sprint ID，可從活躍 Sprint 列表中獲取
 
@@ -60,22 +60,22 @@
 
 1. **獲取活躍的 Sprint**
    ```bash
-   curl http://localhost:3000/api/sprints/active
+   curl http://localhost:5001/api/sprints/active
    ```
 
 2. **獲取指定 Sprint 中的問題**
    ```bash
-   curl http://localhost:3000/api/sprints/Sprint%2010/issues?projectKey=TWIT
+   curl http://localhost:5001/api/sprints/Sprint%2010/issues?projectKey=TWIT
    ```
 
 3. **獲取特定問題的詳細資訊**
    ```bash
-   curl http://localhost:3000/api/issues/TWIT-123
+   curl http://localhost:5001/api/issues/TWIT-123
    ```
 
 4. **獲取 Sprint 統計資訊**
    ```bash
-   curl http://localhost:3000/api/sprints/123/statistics
+   curl http://localhost:5001/api/sprints/123/statistics
    ```
 
 ## 3. 查詢結果格式

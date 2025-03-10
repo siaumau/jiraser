@@ -84,7 +84,7 @@ cls
 echo ===== 啟動 Web 服務 =====
 echo.
 echo [資訊] 正在啟動 Jira API 服務...
-echo [資訊] 服務啟動後，您可以訪問 http://localhost:3000 使用網頁界面。
+echo [資訊] 服務啟動後，您可以訪問 http://localhost:5001 使用網頁界面。
 echo [資訊] 按 Ctrl+C 可以停止服務，然後按任意鍵返回主選單。
 echo [資訊] 啟動日誌將記錄在: %LOGFILE%
 echo.
