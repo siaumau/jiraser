@@ -104,6 +104,18 @@ class JiraApi {
       const response = await this.axiosInstance.get('/rest/api/3/issue/' + issueKey);
 
       const issue = response.data;
+      
+      // 獲取留言
+      const commentsResponse = await this.axiosInstance.get(`/rest/api/3/issue/${issueKey}/comment`);
+      console.table(commentsResponse);
+      const comments = commentsResponse.data.comments.map(comment => ({
+        id: comment.id,
+        author: comment.author.displayName,
+        created: comment.created,
+        updated: comment.updated,
+        body: comment.body
+      }));
+
       return {
         key: issue.key,
         summary: issue.fields.summary,
@@ -115,7 +127,8 @@ class JiraApi {
         created: issue.fields.created,
         updated: issue.fields.updated,
         components: issue.fields.components.map(c => c.name),
-        labels: issue.fields.labels
+        labels: issue.fields.labels,
+        comments: comments
       };
     } catch (error) {
       console.error(`獲取問題 ${issueKey} 詳細資訊時出錯:`, error.message);

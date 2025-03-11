@@ -579,7 +579,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
         const response = await fetch(`/api/issues/${encodeURIComponent(issueKey)}`);
         const data = await response.json();
-
+console.table(data.description.content);
         if (response.ok) {
           let html = '<div class="issue-details-header">';
           html += `<h3>${data.key}: ${data.summary}</h3>`;
@@ -652,18 +652,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                           let taskContent = '(空白任務)';
                           
                           if (taskItem.content && taskItem.content.length > 0) {
-                            console.log('Task content:', taskItem.content); // 除錯用
                             taskContent = taskItem.content.map(item => {
                               if (item.type === 'text') {
-                                console.log('Text content:', item.text); // 除錯用
                                 return item.text;
                               } else {
                                 return renderContent([item]);
                               }
                             }).join('');
                           }
-
-                          console.log('Final task content:', taskContent); // 除錯用
 
                           contentHtml += `<div class="task-item">
                             <input type="checkbox" ${checked ? 'checked' : ''} disabled>
@@ -683,6 +679,29 @@ document.addEventListener('DOMContentLoaded', async () => {
               html += `<pre>${JSON.stringify(data.description, null, 2)}</pre>`;
             }
           }
+
+          // 添加留言區塊
+          html += '<div class="comments-section">';
+          html += '<h4>留言記錄</h4>';
+          
+          if (data.comments && data.comments.length > 0) {
+            data.comments.forEach(comment => {
+              html += `<div class="comment-item">
+                <div class="comment-header">
+                  <span class="comment-author">${comment.author}</span>
+                  <span class="comment-time">
+                    ${new Date(comment.created).toLocaleString()}
+                    ${comment.updated !== comment.created ? ' (已編輯)' : ''}
+                  </span>
+                </div>
+                <div class="comment-body">${comment.body}</div>
+              </div>`;
+            });
+          } else {
+            html += '<div class="no-comments">目前沒有留言</div>';
+          }
+          
+          html += '</div>';
 
           resultElement.innerHTML = html;
         } else {
