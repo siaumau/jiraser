@@ -104,7 +104,7 @@ class JiraApi {
       const response = await this.axiosInstance.get('/rest/api/3/issue/' + issueKey);
 
       const issue = response.data;
-      
+
       // 獲取留言
       const commentsResponse = await this.axiosInstance.get(`/rest/api/3/issue/${issueKey}/comment`);
       const comments = commentsResponse.data.comments.map(comment => ({
@@ -112,7 +112,8 @@ class JiraApi {
         author: comment.author.displayName,
         created: comment.created,
         updated: comment.updated,
-        body: this.parseCommentBody(comment.body)
+        body: this.parseCommentBody(comment.body),
+        data: comment.commentsResponse
       }));
 
       return {
@@ -139,7 +140,7 @@ class JiraApi {
   parseCommentBody(body) {
     if (!body) return '';
     if (typeof body === 'string') return body;
-    
+
     if (body.content && Array.isArray(body.content)) {
       return body.content.map(block => {
         if (block.type === 'paragraph' && block.content) {
@@ -171,25 +172,25 @@ class JiraApi {
         } else if (block.type === 'codeBlock') {
           return `\n\`\`\`\n${block.content.map(item => item.text).join('\n')}\n\`\`\`\n`;
         } else if (block.type === 'bulletList') {
-          return '\n' + block.content.map(item => 
+          return '\n' + block.content.map(item =>
             '• ' + this.parseCommentBody({ content: item.content })
           ).join('\n');
         } else if (block.type === 'orderedList') {
-          return '\n' + block.content.map((item, index) => 
+          return '\n' + block.content.map((item, index) =>
             `${index + 1}. ` + this.parseCommentBody({ content: item.content })
           ).join('\n');
         }
         return '';
       }).join('\n').trim();
     }
-    
+
     return JSON.stringify(body);
   }
 
   // 解析 JIRA 內容格式
   parseContent(content) {
     if (!content || !content.content) return '';
-    
+
     let result = '';
     content.content.forEach(block => {
       if (block.type === 'paragraph') {
