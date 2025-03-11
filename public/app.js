@@ -579,7 +579,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
         const response = await fetch(`/api/issues/${encodeURIComponent(issueKey)}`);
         const data = await response.json();
-console.table(data.description.content);
         if (response.ok) {
           let html = '<div class="issue-details-header">';
           html += `<h3>${data.key}: ${data.summary}</h3>`;
