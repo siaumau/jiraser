@@ -1,0 +1,6 @@
+---
+description: commond
+globs: 
+alwaysApply: false
+---
+回應的內容有提到需要使用表格顯示的話，情使用更適合瀏覽的表格格式顯示給前端好瀏覽查看
