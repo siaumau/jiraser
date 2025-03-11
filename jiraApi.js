@@ -95,58 +95,58 @@ class JiraApi {
   }
 
   /**
-   * 獲取特定問題的詳細資訊
-   * @param {string} issueKey - 問題金鑰，例如 TWIT-123
-   * @returns {Promise<Object>} - 問題的詳細資訊
+   * 獲取附件的 blob URL
+   * @param {string} attachmentId - 附件的 ID
+   * @returns {Promise<string>} - blob URL
    */
-  async getIssueDetails(issueKey) {
+  async getAttachmentBlobUrl(attachmentId) {
     try {
-      const response = await this.axiosInstance.get('/rest/api/3/issue/' + issueKey);
-
-      const issue = response.data;
-
-      // 獲取留言
-      const commentsResponse = await this.axiosInstance.get(`/rest/api/3/issue/${issueKey}/comment`);
-
-      const comments = commentsResponse.data.comments.map(comment => {
-        const parsedBody = this.parseCommentBody(comment.body);
-        return {
-          id: comment.id,
-          author: comment.author.displayName,
-          created: comment.created,
-          updated: comment.updated,
-          body: parsedBody,
-          rawBody: comment.body // 保存原始數據，以備需要
-        };
+      const attachmentUrl = `${this.getDomain()}/secure/attachment/${attachmentId}`;
+      const response = await this.axiosInstance.get(attachmentUrl, {
+        responseType: 'blob'
       });
-
-      return {
-        key: issue.key,
-        summary: issue.fields.summary,
-        description: issue.fields.description,
-        status: issue.fields.status.name,
-        assignee: issue.fields.assignee ? issue.fields.assignee.displayName : '未分配',
-        reporter: issue.fields.reporter ? issue.fields.reporter.displayName : '未知',
-        priority: issue.fields.priority ? issue.fields.priority.name : '未設置',
-        created: issue.fields.created,
-        updated: issue.fields.updated,
-        components: issue.fields.components.map(c => c.name),
-        labels: issue.fields.labels,
-        comments: comments
-      };
+      return URL.createObjectURL(response.data);
     } catch (error) {
-      console.error(`獲取問題 ${issueKey} 詳細資訊時出錯:`, error.message);
+      console.error('獲取附件失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 獲取附件的資訊
+   * @param {string} issueKey - 問題的 key
+   * @returns {Promise<Array>} - 附件列表
+   */
+  async getIssueAttachments(issueKey) {
+    try {
+      const response = await this.axiosInstance.get(`/rest/api/3/issue/${issueKey}`);
+      const attachments = response.data.fields.attachment || [];
+
+      return attachments.map(attachment => ({
+        id: attachment.id,
+        filename: attachment.filename,
+        mimeType: attachment.mimeType,
+        size: attachment.size,
+        created: attachment.created,
+        url: `${this.getDomain()}/secure/attachment/${attachment.id}/${encodeURIComponent(attachment.filename)}`,
+        thumbnailUrl: attachment.thumbnail
+      }));
+    } catch (error) {
+      console.error(`獲取問題 ${issueKey} 附件時出錯:`, error.message);
       throw error;
     }
   }
 
   // 解析 JIRA 留言內容格式
-  parseCommentBody(body) {
+  parseCommentBody(body, attachments = []) {
     if (!body) return '';
     if (typeof body === 'string') return body;
 
+    // 收集圖片資訊，以便後續處理
+    const images = [];
+
     if (body.content && Array.isArray(body.content)) {
-      return body.content.map(block => {
+      const parsedContent = body.content.map(block => {
         if (block.type === 'paragraph' && block.content) {
           return block.content.map(item => {
             switch (item.type) {
@@ -171,7 +171,7 @@ class JiraApi {
               case 'hardBreak':
                 return '\n';
               case 'inlineCard':
-                return `[瀏覽](${item.attrs.url})`;
+                return `<a href="${item.attrs.url}" target="_blank">瀏覽</a>`;
               default:
                 return '';
             }
@@ -180,39 +180,97 @@ class JiraApi {
           return `\n\`\`\`\n${block.content.map(item => item.text).join('\n')}\n\`\`\`\n`;
         } else if (block.type === 'bulletList') {
           return '\n' + block.content.map(item =>
-            '• ' + this.parseCommentBody({ content: item.content })
+            '• ' + this.parseCommentBody({ content: item.content }, attachments)
           ).join('\n');
         } else if (block.type === 'orderedList') {
           return '\n' + block.content.map((item, index) =>
-            `${index + 1}. ` + this.parseCommentBody({ content: item.content })
+            `${index + 1}. ` + this.parseCommentBody({ content: item.content }, attachments)
           ).join('\n');
         } else if (block.type === 'mediaSingle') {
           const media = block.content.find(item => item.type === 'media');
           if (media && media.attrs) {
-            const attachmentUrl = `https://paulaschoice.atlassian.net/secure/attachment/${media.attrs.id}`;
-            return `\n![${media.attrs.alt || '未命名'}](${attachmentUrl})\n`;
+            const imageId = media.attrs.id;
+            const imageAlt = media.attrs.alt || '圖片';
+
+            // 從 attachments 中找到對應的附件
+            const attachment = attachments.find(att => att.id === imageId || att.filename === media.attrs.alt);
+            if (attachment) {
+              // 使用 attachments 中的 url
+              const imageUrl = `https://${attachment.url}`;
+
+              // 添加圖片信息到陣列
+              images.push({
+                id: imageId,
+                alt: imageAlt,
+                url: imageUrl
+              });
+
+              // 直接返回 img 標籤
+              return `\n<img src="${imageUrl}" alt="${imageAlt}" style="max-width: 100%; height: auto;">\n`;
+            }
           }
         }
         return '';
       }).join('\n').trim();
+
+      return {
+        text: parsedContent,
+        images: images
+      };
     }
 
-    return JSON.stringify(body);
+    return {
+      text: JSON.stringify(body),
+      images: []
+    };
   }
 
   /**
-   * 獲取附件的 blob URL
-   * @param {string} attachmentUrl - 附件的 URL
-   * @returns {Promise<string>} - blob URL
+   * 獲取特定問題的詳細資訊
+   * @param {string} issueKey - 問題金鑰，例如 TWIT-123
+   * @returns {Promise<Object>} - 問題的詳細資訊
    */
-  async getAttachmentBlobUrl(attachmentUrl) {
+  async getIssueDetails(issueKey) {
     try {
-      const response = await this.axiosInstance.get(attachmentUrl, {
-        responseType: 'blob'
+      const response = await this.axiosInstance.get('/rest/api/3/issue/' + issueKey);
+      const issue = response.data;
+
+      // 先獲取附件
+      const attachments = await this.getIssueAttachments(issueKey);
+
+      // 獲取留言
+      const commentsResponse = await this.axiosInstance.get(`/rest/api/3/issue/${issueKey}/comment`);
+
+      const comments = commentsResponse.data.comments.map(comment => {
+        const parsedBody = this.parseCommentBody(comment.body, attachments);
+        return {
+          id: comment.id,
+          author: comment.author.displayName,
+          created: comment.created,
+          updated: comment.updated,
+          body: parsedBody.text,
+          images: parsedBody.images,
+          rawBody: comment.body
+        };
       });
-      return URL.createObjectURL(response.data);
+
+      return {
+        key: issue.key,
+        summary: issue.fields.summary,
+        description: issue.fields.description,
+        status: issue.fields.status.name,
+        assignee: issue.fields.assignee ? issue.fields.assignee.displayName : '未分配',
+        reporter: issue.fields.reporter ? issue.fields.reporter.displayName : '未知',
+        priority: issue.fields.priority ? issue.fields.priority.name : '未設置',
+        created: issue.fields.created,
+        updated: issue.fields.updated,
+        components: issue.fields.components.map(c => c.name),
+        labels: issue.fields.labels,
+        comments: comments,
+        attachments: attachments
+      };
     } catch (error) {
-      console.error('獲取附件失敗:', error);
+      console.error(`獲取問題 ${issueKey} 詳細資訊時出錯:`, error.message);
       throw error;
     }
   }
