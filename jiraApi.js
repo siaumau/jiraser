@@ -104,6 +104,17 @@ class JiraApi {
       const response = await this.axiosInstance.get('/rest/api/3/issue/' + issueKey);
 
       const issue = response.data;
+      
+      // 獲取留言
+      const commentsResponse = await this.axiosInstance.get(`/rest/api/3/issue/${issueKey}/comment`);
+      const comments = commentsResponse.data.comments.map(comment => ({
+        id: comment.id,
+        author: comment.author.displayName,
+        created: comment.created,
+        updated: comment.updated,
+        body: this.parseCommentBody(comment.body)
+      }));
+
       return {
         key: issue.key,
         summary: issue.fields.summary,
@@ -115,12 +126,86 @@ class JiraApi {
         created: issue.fields.created,
         updated: issue.fields.updated,
         components: issue.fields.components.map(c => c.name),
-        labels: issue.fields.labels
+        labels: issue.fields.labels,
+        comments: comments
       };
     } catch (error) {
       console.error(`獲取問題 ${issueKey} 詳細資訊時出錯:`, error.message);
       throw error;
     }
+  }
+
+  // 解析 JIRA 留言內容格式
+  parseCommentBody(body) {
+    if (!body) return '';
+    if (typeof body === 'string') return body;
+    
+    if (body.content && Array.isArray(body.content)) {
+      return body.content.map(block => {
+        if (block.type === 'paragraph' && block.content) {
+          return block.content.map(item => {
+            if (item.type === 'text') {
+              let text = item.text || '';
+              // 處理文字格式
+              if (item.marks) {
+                item.marks.forEach(mark => {
+                  switch (mark.type) {
+                    case 'strong':
+                      text = `**${text}**`;
+                      break;
+                    case 'em':
+                      text = `_${text}_`;
+                      break;
+                    case 'code':
+                      text = `\`${text}\``;
+                      break;
+                  }
+                });
+              }
+              return text;
+            } else if (item.type === 'hardBreak') {
+              return '\n';
+            }
+            return '';
+          }).join('');
+        } else if (block.type === 'codeBlock') {
+          return `\n\`\`\`\n${block.content.map(item => item.text).join('\n')}\n\`\`\`\n`;
+        } else if (block.type === 'bulletList') {
+          return '\n' + block.content.map(item => 
+            '• ' + this.parseCommentBody({ content: item.content })
+          ).join('\n');
+        } else if (block.type === 'orderedList') {
+          return '\n' + block.content.map((item, index) => 
+            `${index + 1}. ` + this.parseCommentBody({ content: item.content })
+          ).join('\n');
+        }
+        return '';
+      }).join('\n').trim();
+    }
+    
+    return JSON.stringify(body);
+  }
+
+  // 解析 JIRA 內容格式
+  parseContent(content) {
+    if (!content || !content.content) return '';
+    
+    let result = '';
+    content.content.forEach(block => {
+      if (block.type === 'paragraph') {
+        if (block.content) {
+          block.content.forEach(item => {
+            if (item.type === 'text') {
+              result += item.text;
+            } else if (item.type === 'hardBreak') {
+              result += '\n';
+            }
+          });
+        }
+        result += '\n';
+      }
+    });
+    return result.trim();
   }
 
   /**
