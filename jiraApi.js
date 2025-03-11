@@ -107,14 +107,18 @@ class JiraApi {
 
       // 獲取留言
       const commentsResponse = await this.axiosInstance.get(`/rest/api/3/issue/${issueKey}/comment`);
-      const comments = commentsResponse.data.comments.map(comment => ({
-        id: comment.id,
-        author: comment.author.displayName,
-        created: comment.created,
-        updated: comment.updated,
-        body: this.parseCommentBody(comment.body),
-        data: comment.commentsResponse
-      }));
+
+      const comments = commentsResponse.data.comments.map(comment => {
+        const parsedBody = this.parseCommentBody(comment.body);
+        return {
+          id: comment.id,
+          author: comment.author.displayName,
+          created: comment.created,
+          updated: comment.updated,
+          body: parsedBody,
+          rawBody: comment.body // 保存原始數據，以備需要
+        };
+      });
 
       return {
         key: issue.key,
@@ -145,29 +149,32 @@ class JiraApi {
       return body.content.map(block => {
         if (block.type === 'paragraph' && block.content) {
           return block.content.map(item => {
-            if (item.type === 'text') {
-              let text = item.text || '';
-              // 處理文字格式
-              if (item.marks) {
-                item.marks.forEach(mark => {
-                  switch (mark.type) {
-                    case 'strong':
-                      text = `**${text}**`;
-                      break;
-                    case 'em':
-                      text = `_${text}_`;
-                      break;
-                    case 'code':
-                      text = `\`${text}\``;
-                      break;
-                  }
-                });
-              }
-              return text;
-            } else if (item.type === 'hardBreak') {
-              return '\n';
+            switch (item.type) {
+              case 'text':
+                let text = item.text || '';
+                if (item.marks) {
+                  item.marks.forEach(mark => {
+                    switch (mark.type) {
+                      case 'strong':
+                        text = `**${text}**`;
+                        break;
+                      case 'em':
+                        text = `_${text}_`;
+                        break;
+                      case 'code':
+                        text = `\`${text}\``;
+                        break;
+                    }
+                  });
+                }
+                return text;
+              case 'hardBreak':
+                return '\n';
+              case 'inlineCard':
+                return `[瀏覽](${item.attrs.url})`;
+              default:
+                return '';
             }
-            return '';
           }).join('');
         } else if (block.type === 'codeBlock') {
           return `\n\`\`\`\n${block.content.map(item => item.text).join('\n')}\n\`\`\`\n`;
@@ -179,12 +186,35 @@ class JiraApi {
           return '\n' + block.content.map((item, index) =>
             `${index + 1}. ` + this.parseCommentBody({ content: item.content })
           ).join('\n');
+        } else if (block.type === 'mediaSingle') {
+          const media = block.content.find(item => item.type === 'media');
+          if (media && media.attrs) {
+            const attachmentUrl = `https://paulaschoice.atlassian.net/secure/attachment/${media.attrs.id}`;
+            return `\n![${media.attrs.alt || '未命名'}](${attachmentUrl})\n`;
+          }
         }
         return '';
       }).join('\n').trim();
     }
 
     return JSON.stringify(body);
+  }
+
+  /**
+   * 獲取附件的 blob URL
+   * @param {string} attachmentUrl - 附件的 URL
+   * @returns {Promise<string>} - blob URL
+   */
+  async getAttachmentBlobUrl(attachmentUrl) {
+    try {
+      const response = await this.axiosInstance.get(attachmentUrl, {
+        responseType: 'blob'
+      });
+      return URL.createObjectURL(response.data);
+    } catch (error) {
+      console.error('獲取附件失敗:', error);
+      throw error;
+    }
   }
 
   // 解析 JIRA 內容格式
