@@ -466,7 +466,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                   ` : ''}
                 </td>
                 <td>${issue.summary || ''}</td>
-                <td style="color: ${getStatusColor(issue.status)}">${issue.status || ''}</td>
+                <td style="color: ${getStatusColor(issue.status)}"><span>${issue.status || ''}</span></td>
                 <td>${issue.assignee || '未分配'}</td>
                 <td>${issue.aggregatetimeoriginalestimate ? (issue.aggregatetimeoriginalestimate / 3600).toFixed(1) + '小時' : '未設定'}</td>
               </tr>`;
