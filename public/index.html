@@ -133,6 +133,56 @@
       margin-bottom: 10px;
     }
 
+    /* 狀態顯示樣式 */
+    td[style*="color:"] {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-weight: 500;
+      text-align: center;
+      min-width: 85px;
+      position: relative;
+      transition: all 0.3s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      font-size: 0.85rem;
+      display: inline-block;
+      margin: 0 auto;
+    }
+
+    td[style*="color: #6B778C"] {
+      background: linear-gradient(135deg, #6B778C, #596574);
+      color: white !important;
+    }
+
+    td[style*="color: #0097A9"] {
+      background: linear-gradient(135deg, #0097A9, #007D8C);
+      color: white !important;
+    }
+
+    td[style*="color: #6554C0"] {
+      background: linear-gradient(135deg, #6554C0, #4C3D9E);
+      color: white !important;
+    }
+
+    td[style*="color: #36B37E"] {
+      background: linear-gradient(135deg, #36B37E, #2B8F64);
+      color: white !important;
+    }
+
+    td[style*="color: #FF5630"] {
+      background: linear-gradient(135deg, #FF5630, #E63E1C);
+      color: white !important;
+    }
+
+    td[style*="color: #FF991F"] {
+      background: linear-gradient(135deg, #FF991F, #E67E00);
+      color: white !important;
+    }
+
+    td[style*="color:"]:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+
     .progress-bar {
       height: 6px;
       background: #e9ecef;
