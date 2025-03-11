@@ -1,0 +1,39 @@
+---
+description: 請求jira專案時可以參考
+globs: 
+alwaysApply: false
+---
+
+#  API 端點
+
+1. **獲取所有活躍的 Sprint**：
+   ```
+   GET http://localhost:5001/api/sprints/active
+   ```
+
+2. **獲取所有 Sprint**：
+   ```
+   GET http://localhost:5001/api/sprints
+   ```
+
+3. **獲取指定 Sprint 中的問題**：
+   ```
+   GET http://localhost:5001/api/sprints/{sprintName}/issues?projectKey={projectKey}
+   ```
+
+4. **獲取特定問題的詳細資訊**：
+   ```
+   GET http://localhost:5001/api/issues/{issueKey}
+   ```
+
+5. **獲取特定負責人的所有問題**：
+   ```
+   GET http://localhost:5001/api/issues/assignee/{assignee}
+   ```
+   - 回傳該負責人最近更新的 50 筆問題
+   - 問題按更新時間降序排序
+   - 回傳欄位包含：金鑰、摘要、狀態、負責人、建立時間、更新時間、優先級
+
+6. **獲取 Sprint 統計資訊**：
+   ```
+   GET http://localhost:5001/api/sprints/{sprintId}/statistics

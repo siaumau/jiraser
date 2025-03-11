@@ -466,11 +466,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                   ` : ''}
                 </td>
                 <td>${issue.summary || ''}</td>
-                <td>
-                  <span class="status-badge" style="background-color: ${getStatusColor(issue.status)}; color: white; padding: 4px 8px; border-radius: 4px; display: inline-block;">
-                    ${issue.status || ''}
-                  </span>
-                </td>
+                <td style="color: ${getStatusColor(issue.status)}"><span>${issue.status || ''}</span></td>
                 <td>${issue.assignee || '未分配'}</td>
                 <td>${issue.aggregatetimeoriginalestimate ? (issue.aggregatetimeoriginalestimate / 3600).toFixed(1) + '小時' : '未設定'}</td>
               </tr>`;
@@ -583,7 +579,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
         const response = await fetch(`/api/issues/${encodeURIComponent(issueKey)}`);
         const data = await response.json();
-
+console.table(data.description.content);
         if (response.ok) {
           let html = '<div class="issue-details-header">';
           html += `<h3>${data.key}: ${data.summary}</h3>`;
@@ -647,6 +643,32 @@ document.addEventListener('DOMContentLoaded', async () => {
                       contentHtml += '</li>';
                     });
                     contentHtml += '</ol>';
+                  } else if (block.type === 'taskList') {
+                    contentHtml += '<div class="task-list">';
+                    if (block.content) {
+                      block.content.forEach(taskItem => {
+                        if (taskItem.type === 'taskItem') {
+                          const checked = taskItem.attrs?.state === 'DONE';
+                          let taskContent = '(空白任務)';
+
+                          if (taskItem.content && taskItem.content.length > 0) {
+                            taskContent = taskItem.content.map(item => {
+                              if (item.type === 'text') {
+                                return item.text;
+                              } else {
+                                return renderContent([item]);
+                              }
+                            }).join('');
+                          }
+
+                          contentHtml += `<div class="task-item">
+                            <input type="checkbox" ${checked ? 'checked' : ''} disabled>
+                            <span class="task-text">${taskContent}</span>
+                          </div>`;
+                        }
+                      });
+                    }
+                    contentHtml += '</div>';
                   }
                 });
                 return contentHtml;
@@ -657,6 +679,37 @@ document.addEventListener('DOMContentLoaded', async () => {
               html += `<pre>${JSON.stringify(data.description, null, 2)}</pre>`;
             }
           }
+
+          // 添加留言區塊
+          html += '<div class="comments-section">';
+          html += '<h4>留言記錄</h4>';
+
+          if (data.comments && data.comments.length > 0) {
+            data.comments.forEach(comment => {
+              // 解析留言內容
+              let commentContent = '';
+              if (typeof comment.body === 'object' && comment.body.content) {
+                commentContent = renderContent(comment.body.content);
+              } else {
+                commentContent = comment.body || '';
+              }
+
+              html += `<div class="comment-item">
+                <div class="comment-header">
+                  <span class="comment-author">${comment.author}</span>
+                  <span class="comment-time">
+                    ${new Date(comment.created).toLocaleString()}
+                    ${comment.updated !== comment.created ? ' (已編輯)' : ''}
+                  </span>
+                </div>
+                <div class="comment-body">${commentContent}</div>
+              </div>`;
+            });
+          } else {
+            html += '<div class="no-comments">目前沒有留言</div>';
+          }
+
+          html += '</div>';
 
           resultElement.innerHTML = html;
         } else {
