@@ -686,6 +686,14 @@ console.table(data.description.content);
           
           if (data.comments && data.comments.length > 0) {
             data.comments.forEach(comment => {
+              // 解析留言內容
+              let commentContent = '';
+              if (typeof comment.body === 'object' && comment.body.content) {
+                commentContent = renderContent(comment.body.content);
+              } else {
+                commentContent = comment.body || '';
+              }
+
               html += `<div class="comment-item">
                 <div class="comment-header">
                   <span class="comment-author">${comment.author}</span>
@@ -694,7 +702,7 @@ console.table(data.description.content);
                     ${comment.updated !== comment.created ? ' (已編輯)' : ''}
                   </span>
                 </div>
-                <div class="comment-body">${comment.body}</div>
+                <div class="comment-body">${commentContent}</div>
               </div>`;
             });
           } else {
