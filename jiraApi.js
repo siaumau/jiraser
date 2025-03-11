@@ -80,7 +80,8 @@ class JiraApi {
         key: issue.key,
         summary: issue.fields.summary,
         status: issue.fields.status.name,
-        assignee: issue.fields.assignee ? issue.fields.assignee.displayName : '未分配'
+        assignee: issue.fields.assignee ? issue.fields.assignee.displayName : '未分配',
+        aggregatetimeoriginalestimate: issue.fields.aggregatetimeoriginalestimate,
       }));
 
       return {
