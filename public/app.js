@@ -425,6 +425,45 @@ document.addEventListener('DOMContentLoaded', async () => {
             const pageIssues = filteredIssues.slice(start, end);
 
             let issuesHtml = '<div class="issues-container">';
+            
+            // 添加處理中（In Progress）的任務列表
+            const inProgressIssues = filteredIssues.filter(issue => 
+              issue.status === '進行中' || issue.status === 'In Progress');
+            
+            if (inProgressIssues.length > 0) {
+              issuesHtml += '<div class="in-progress-container">';
+              issuesHtml += '<h4>處理中的任務 (' + inProgressIssues.length + ')</h4>';
+              issuesHtml += '<table class="in-progress-table">';
+              issuesHtml += '<tr>';
+              issuesHtml += '<th>金鑰</th>';
+              issuesHtml += '<th>摘要</th>';
+              issuesHtml += '<th>負責人</th>';
+              issuesHtml += '<th>預估工時</th>';
+              issuesHtml += '</tr>';
+              
+              inProgressIssues.forEach(issue => {
+                issuesHtml += `<tr>
+                  <td>
+                    <a href="#" class="issue-key" data-key="${issue.key}">${issue.key}</a>
+                    ${jiraDomain ? `
+                      <a href="https://${jiraDomain}/browse/${issue.key}" target="_blank" class="external-link" title="在 JIRA 中開啟">
+                        <svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align: middle; margin-left: 4px;">
+                          <path fill="currentColor" d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
+                        </svg>
+                      </a>
+                    ` : ''}
+                  </td>
+                  <td>${issue.summary || ''}</td>
+                  <td>${issue.assignee || '未分配'}</td>
+                  <td>${issue.aggregatetimeoriginalestimate ? (issue.aggregatetimeoriginalestimate / 3600).toFixed(1) + '小時' : '未設定'}</td>
+                </tr>`;
+              });
+              
+              issuesHtml += '</table>';
+              issuesHtml += '</div>';
+              issuesHtml += '<hr class="section-divider">';
+            }
+            
             issuesHtml += '<h4>卡片列表';
             if (filteredIssues.length !== data.issues.length) {
               issuesHtml += ` (已篩選：${filteredIssues.length}/${data.issues.length})`;
