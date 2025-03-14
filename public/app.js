@@ -31,6 +31,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       toggleStatsBtn.classList.toggle('active');
       const isVisible = statsContainer.classList.contains('visible');
       toggleStatsBtn.querySelector('span').textContent = isVisible ? '隱藏統計資訊' : '顯示統計資訊';
+      
+      // 更新SVG圖標
+      const svgPath = isVisible ? 
+        'M3 3V21H21 M7 10L12 15L16 11L21 16' : 
+        'M3 3V21H21 M7 16L12 11L16 15L21 10';
+      
+      toggleStatsBtn.querySelector('svg path:nth-child(2)').setAttribute('d', svgPath);
     });
   }
 
