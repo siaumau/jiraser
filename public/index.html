@@ -708,6 +708,59 @@
       background: #f8f9fa;
       border-radius: 4px;
     }
+
+    /* 收合功能樣式 */
+    .collapsible-section {
+      margin-bottom: 20px;
+    }
+    
+    .collapsible-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 0 10px 0;
+      border-bottom: 1px solid #e9ecef;
+    }
+    
+    .collapsible-header h4 {
+      margin: 0;
+    }
+    
+    .toggle-collapse-btn {
+      background: #f0f8ff;
+      color: #0097A9;
+      border: 1px solid #0097A9;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+    
+    .toggle-collapse-btn:hover {
+      background: #e6f7ff;
+    }
+    
+    .collapse-icon {
+      font-style: normal;
+      transition: transform 0.2s ease;
+    }
+    
+    .collapsible-content {
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+      overflow: hidden;
+      max-height: 2000px;
+      opacity: 1;
+    }
+    
+    .collapsible-content.collapsed {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+    }
   </style>
 </head>
 <body>
