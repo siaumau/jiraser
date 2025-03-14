@@ -420,6 +420,10 @@ document.addEventListener('DOMContentLoaded', async () => {
               });
             }
 
+            // 保存當前的收合狀態
+            const currentContentDiv = document.getElementById('cardListContent');
+            const isCurrentlyCollapsed = currentContentDiv ? currentContentDiv.classList.contains('collapsed') : true;
+
             const start = (page - 1) * itemsPerPage;
             const end = start + itemsPerPage;
             const pageIssues = filteredIssues.slice(start, end);
@@ -464,11 +468,21 @@ document.addEventListener('DOMContentLoaded', async () => {
               issuesHtml += '<hr class="section-divider">';
             }
             
-            issuesHtml += '<h4>卡片列表';
+            // 添加可收合的卡片列表
+            issuesHtml += '<div class="collapsible-section">';
+            issuesHtml += `<div class="collapsible-header">
+              <h4>卡片列表`;
             if (filteredIssues.length !== data.issues.length) {
               issuesHtml += ` (已篩選：${filteredIssues.length}/${data.issues.length})`;
             }
-            issuesHtml += '</h4>';
+            issuesHtml += `</h4>
+              <button class="toggle-collapse-btn" id="toggleCardList">
+                ${isCurrentlyCollapsed ? '展開 <i class="collapse-icon">▼</i>' : '收合 <i class="collapse-icon">▲</i>'}
+              </button>
+            </div>`;
+            
+            // 卡片列表內容，根據之前的狀態決定是否收合
+            issuesHtml += `<div class="collapsible-content ${isCurrentlyCollapsed ? 'collapsed' : ''}" id="cardListContent">`;
 
             // 添加表格標題排序功能
             const getSortIcon = (column) => {
@@ -523,8 +537,10 @@ document.addEventListener('DOMContentLoaded', async () => {
               issuesHtml += `<button class="page-btn" ${page === totalPages ? 'disabled' : ''} onclick="changePage(${page + 1})">下一頁</button>`;
               issuesHtml += '</div>';
             }
-
-            issuesHtml += '</div>';
+            
+            issuesHtml += '</div>'; // 結束 collapsible-content
+            issuesHtml += '</div>'; // 結束 collapsible-section
+            issuesHtml += '</div>'; // 結束 issues-container
 
             if (resultElement) {
               resultElement.innerHTML = issuesHtml;
@@ -552,6 +568,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                   }
                 });
               });
+              
+              // 添加收合/展開功能的事件監聽器
+              const toggleBtn = document.getElementById('toggleCardList');
+              const contentDiv = document.getElementById('cardListContent');
+              if (toggleBtn && contentDiv) {
+                // 不再設置初始狀態，因為已經在HTML中設置了
+                
+                toggleBtn.addEventListener('click', () => {
+                  contentDiv.classList.toggle('collapsed');
+                  const isCollapsed = contentDiv.classList.contains('collapsed');
+                  toggleBtn.innerHTML = isCollapsed ? 
+                    '展開 <i class="collapse-icon">▼</i>' : 
+                    '收合 <i class="collapse-icon">▲</i>';
+                });
+              }
             }
           }
 
