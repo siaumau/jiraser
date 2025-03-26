@@ -60,10 +60,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         data.forEach(sprint => {
           const option = document.createElement('option');
           option.value = sprint.name;
-          const startDate = new Date(sprint.startDate).toLocaleDateString();
-          const endDate = new Date(sprint.endDate).toLocaleDateString();
-          const state = sprint.state.charAt(0).toUpperCase() + sprint.state.slice(1).toLowerCase();
-          option.textContent = `${sprint.name} (${state}) - ${startDate} ~ ${endDate}`;
+          const startDate = new Date(sprint.startDate);
+          const endDate = new Date(sprint.endDate);
+          
+          // 格式化日期為 "M月 前後端分離" 格式
+          const startMonth = startDate.getMonth() + 1; // getMonth() 返回 0-11
+          
+          // 檢查日期範圍是否跨月
+          const endMonth = endDate.getMonth() + 1;
+          const dateText = startMonth === endMonth ? 
+            `${startMonth}月` : 
+            `${startMonth}月~${endMonth}月`;
+          
+          // 檢查是否包含 "前後端分離"
+          const nameParts = sprint.name.split(' ');
+          const additionalText = nameParts.length > 1 ? ' 前後端分離' : '';
+          
+          option.textContent = `${dateText}${additionalText} (${startDate.getFullYear()}/${startDate.getMonth() + 1}/${startDate.getDate()} ~ ${endDate.getFullYear()}/${endDate.getMonth() + 1}/${endDate.getDate()})`;
           sprintSelect.appendChild(option);
         });
 
@@ -90,7 +103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // 獲取活躍的 Sprint 按鈕事件
+  // 獲取所有 Sprint 按鈕事件
   const getActiveSprintsButton = document.getElementById('getActiveSprints');
   if (getActiveSprintsButton) {
     getActiveSprintsButton.addEventListener('click', async () => {
@@ -100,20 +113,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       resultElement.innerHTML = '<div class="loading">載入中...</div>';
 
       try {
-        const response = await fetch('/api/sprints/active');
+        const response = await fetch('/api/sprints');  // 修改為獲取所有 Sprint
         const data = await response.json();
 
         if (response.ok) {
           let html = '<table><tr><th>ID</th><th>名稱</th><th>狀態</th><th>開始日期</th><th>結束日期</th></tr>';
 
+          // 按照開始日期降序排序（最新的在前面）
+          data.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+
           data.forEach(sprint => {
             const startDate = new Date(sprint.startDate).toLocaleDateString();
             const endDate = new Date(sprint.endDate).toLocaleDateString();
+            const state = sprint.state.charAt(0).toUpperCase() + sprint.state.slice(1).toLowerCase();
 
             html += `<tr>
               <td>${sprint.id}</td>
               <td>${sprint.name}</td>
-              <td>${sprint.state}</td>
+              <td>${state}</td>
               <td>${startDate}</td>
               <td>${endDate}</td>
             </tr>`;
