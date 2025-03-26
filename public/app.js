@@ -41,13 +41,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // 自動獲取活躍的 Sprint 並填充下拉選單
-  async function loadActiveSprints() {
+  // 自動獲取所有 Sprint 並填充下拉選單
+  async function loadAllSprints() {
     const sprintSelect = document.getElementById('sprintName');
     if (!sprintSelect) return;
 
     try {
-      const response = await fetch('/api/sprints/active');
+      const response = await fetch('/api/sprints');  // 修改為獲取所有 Sprint
       const data = await response.json();
 
       if (response.ok) {
@@ -62,11 +62,12 @@ document.addEventListener('DOMContentLoaded', async () => {
           option.value = sprint.name;
           const startDate = new Date(sprint.startDate).toLocaleDateString();
           const endDate = new Date(sprint.endDate).toLocaleDateString();
-          option.textContent = `${sprint.name} (${startDate} ~ ${endDate})`;
+          const state = sprint.state.charAt(0).toUpperCase() + sprint.state.slice(1).toLowerCase();
+          option.textContent = `${sprint.name} (${state}) - ${startDate} ~ ${endDate}`;
           sprintSelect.appendChild(option);
         });
 
-        // 如果有活躍的 Sprint，自動選擇第一個並觸發載入
+        // 如果有 Sprint，自動選擇第一個並觸發載入
         if (data.length > 0) {
           sprintSelect.value = data[0].name;
           // 觸發 Sprint 問題載入
@@ -78,8 +79,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // 頁面載入時自動獲取活躍的 Sprint
-  loadActiveSprints();
+  // 頁面載入時自動獲取所有 Sprint
+  loadAllSprints();
 
   // Sprint 選擇變更時自動載入問題
   const sprintSelect = document.getElementById('sprintName');
