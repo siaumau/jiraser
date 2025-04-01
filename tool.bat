@@ -89,7 +89,14 @@ echo [資訊] 按 Ctrl+C 可以停止服務，然後按任意鍵返回主選單�
 echo [資訊] 啟動日誌將記錄在: %LOGFILE%
 echo.
 echo [%date% %time%] 開始啟動 Jira API 服務 >> "%LOGFILE%"
+
+REM 等待 2 秒讓服務啟動
+timeout /t 2 /nobreak > nul
+
+REM 啟動服務和瀏覽器
+start "" http://localhost:5001
 call npm run server >> "%LOGFILE%" 2>&1
+
 echo.
 echo [%date% %time%] 服務已停止 >> "%LOGFILE%"
 echo [資訊] 服務已停止。
