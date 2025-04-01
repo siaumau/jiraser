@@ -2,6 +2,36 @@
 
 這個專案提供了一個簡單的 Node.js 工具，用於與 Jira API 進行互動，獲取 Sprint、問題和統計資訊。支援命令行操作、本地 Web 服務，以及便捷的 Windows 批次檔操作方式。
 
+## 快速開始
+
+### 首次使用
+1. **設定 Jira API Token**：
+   - 訪問 [Atlassian API Token 管理頁面](https://id.atlassian.com/manage-profile/security/api-tokens)
+   - 點擊 "Create API token"
+   - 為您的 token 輸入一個標籤名稱（例如："jiraser-api"）
+   - 複製生成的 token
+
+2. **設定環境變數**：
+   - 在專案根目錄創建 `.env` 檔案
+   - 填入以下內容：
+     ```
+     JIRA_DOMAIN=your-domain.atlassian.net
+     JIRA_EMAIL=your-email@example.com
+     JIRA_API_TOKEN=your-api-token    # 將剛才複製的 token 貼在這裡
+     JIRA_BOARD_ID=your-board-id
+     ```
+
+3. **初始化工具**：
+   - 雙擊 `tool.bat`
+   - 選擇選項 `[1]` 安裝必要套件
+   - 安裝完成後，選擇選項 `[2]` 啟動 Web 服務
+   - 服務將在 http://localhost:5001 啟動
+
+### 後續使用
+- 直接雙擊 `tool.bat`
+- 選擇選項 `[2]` 啟動 Web 服務
+- 服務將自動在 http://localhost:5001 啟動
+
 ## 功能特點
 
 - 獲取所有活躍的 Sprint
@@ -81,12 +111,19 @@
    JIRA_BOARD_ID=your-board-id
    ```
 
-#### jira-tool.bat
+   > 📝 **獲取 Jira API Token**
+   > 1. 訪問 [Atlassian API Token 管理頁面](https://id.atlassian.com/manage-profile/security/api-tokens)
+   > 2. 點擊 "Create API token"
+   > 3. 為您的 token 輸入一個標籤名稱（例如："jiraser-api"）
+   > 4. 複製生成的 token 並保存到 `.env` 檔案中的 `JIRA_API_TOKEN` 變數
+   > ⚠️ **注意**：API Token 只會顯示一次，請確保安全保存。如果遺失，需要重新生成新的 token。
+
+#### tool.bat
 
 這是一個功能更完整的批次檔，提供選單界面讓您選擇不同的操作。 (建議採用此方式，可以快速使用，因建構在node需求下，所以需要安裝nodejs)
 
 **使用方法**：
-1. 雙擊 `jira-tool.bat` 檔案
+1. 雙擊 `tool.bat` 檔案
 2. 在選單中選擇您想要執行的操作：
    - `[1]` 安裝必要套件
    - `[2]` 啟動 Web 服務
@@ -182,7 +219,7 @@
    - 記錄內容包括操作時間、執行的命令和結果
 
 2. **查看日誌**：
-   - 使用 `jira-tool.bat` 中的選項 `[8]` 查看日誌檔案
+   - 使用 `tool.bat` 中的選項 `[8]` 查看日誌檔案
    - 可查看當前會話或之前的日誌
 
 ## 專案結構
@@ -196,7 +233,7 @@ jira-api-tool/
 ├── examples.js          # 範例程式
 ├── server.js            # Web 服務
 ├── start-jira-service.bat # Windows 快速啟動批次檔
-├── jira-tool.bat        # Windows 工具選單批次檔
+├── tool.bat             # Windows 工具選單批次檔
 ├── package.json         # 專案配置
 └── public/              # Web 界面
     ├── index.html       # HTML 頁面
@@ -215,8 +252,22 @@ jira-api-tool/
    - 確保 `package.json` 存在且正確
    - 查看日誌檔案以獲取詳細錯誤信息
 
-3. **服務啟動後無法訪問**
-   - 確保端口 5001 未被佔用
+3. **服務啟動後無法訪問或端口被占用（EADDRINUSE）**
+   - 檢查端口 5001 是否被其他程序占用
+   - 使用以下命令找出占用端口的程序：
+     ```bash
+     # Windows PowerShell
+     netstat -ano | findstr :5001
+     ```
+   - 終止占用端口的程序：
+     ```bash
+     # 使用 PID 終止程序（將 PID 替換為上面命令顯示的數字）
+     taskkill /F /PID <PID>
+     ```
+   - 或者修改 `server.js` 中的端口號：
+     ```javascript
+     const PORT = process.env.PORT || 5002;  // 改為其他未被使用的端口
+     ```
    - 檢查防火牆設定
    - 查看日誌檔案中的錯誤信息
 
